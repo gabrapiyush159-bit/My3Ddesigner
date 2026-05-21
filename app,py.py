@@ -1,0 +1,75 @@
+from flask import Flask, render_template_string
+
+app = Flask(__name__)
+
+VISUAL_STUDIO_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Simple 3D Room</title>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; color: white; font-family: sans-serif; }
+        #control-panel { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px; z-index: 10; }
+        button { padding: 10px; margin: 5px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="control-panel">
+        <h2>3D Design Studio</h2>
+        <p>"Your Dimensions. Your Style. Your Room."</p>
+        <button style="background: red; color: white;" onclick="changeColor('#ff0000')">Red Sofa</button>
+        <button style="background: green; color: white;" onclick="changeColor('#00ff00')">Green Sofa</button>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(light);
+
+        const geometry = new THREE.BoxGeometry(2, 1, 1);
+        const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const sofa = new THREE.Mesh(geometry, material);
+        scene.add(sofa);
+
+        camera.lookAt(sofa.position);
+
+        window.changeColor = function(newHexColor) {
+            material.color.set(newHexColor);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            sofa.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def home_page():
+    return render_template_string(VISUAL_STUDIO_HTML)
+
+if __name__ == '__main__':
+    # Modified to accept global web traffic on port 8080
+    app.run(host='0.0.0.0', port=8080)
+    app.run(debug=True)
